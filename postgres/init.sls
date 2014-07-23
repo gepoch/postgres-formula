@@ -11,6 +11,18 @@ postgresql:
     - require:
       - pkg: {{ postgres.pkg }}
 
+{% if 'RedHat' == grains['os_family'] %}
+postgres-initdb:
+  cmd.run:
+    - name: service postgresql initdb
+    - unless: test -e /var/lib/pgsql/data/pg_hba.conf
+    - require_in:
+      - service: postgresql
+      {% if 'pg_hba.conf' in pillar.get('postgres', {}) %}
+      - file: pg_hba.conf
+      {% endif %}
+{% endif %}
+
 {% if 'pg_hba.conf' in pillar.get('postgres', {}) %}
 pg_hba.conf:
   file.managed:
